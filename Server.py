@@ -1,20 +1,23 @@
 import socket
 import threading
-
+import re
 HEADER = 64
 PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDRESS = (SERVER,PORT)
 FORMAT = "utf-8"
 DISCONNECT_MSG = "!DISCONNECTED"
+NICKNAME_MSG = "N/"
 server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 server.bind(ADDRESS)
 display = []
 conns = []
+Nickname = {}
 def handle_client(conn,addr):
     print(f"[NEW CONNECTION] {addr} connected.")
     connected = True
     conn.send("------------".encode(FORMAT))
+    name = addr
     while connected:
         for message in display:
             conn.send(f"\n{message}".encode(FORMAT))
@@ -24,11 +27,17 @@ def handle_client(conn,addr):
             msg = conn.recv(msg_length).decode(FORMAT)
             if msg == DISCONNECT_MSG:
                 connected = False
-            user_message = f"[{addr}] {msg}"
-            display.append(user_message)
+            if re.findall(f"^{NICKNAME_MSG}", msg):
+                Nickname[addr] = msg.split(NICKNAME_MSG)[1]
+                name = Nickname[addr]
+            else:
+                user_message = f"[{name}] {msg}"
+                display.append(user_message)
+            user_message = f"[{name}] {msg}"
             print(user_message)
 
     conn.close()
+
 def start():
     print("[STARTING] server is starting...")
     server.listen()
