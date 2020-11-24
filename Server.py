@@ -16,7 +16,6 @@ Nickname = {}
 def handle_client(conn,addr):
     print(f"[NEW CONNECTION] {addr} connected.")
     connected = True
-    conn.send("------------".encode(FORMAT))
     name = addr
     while connected:
         for message in display:
